@@ -1,0 +1,169 @@
+plugin.tx_mmforumnews {
+
+
+		#
+		# These properties are needed for the TCEmain hook.
+		#
+
+	forumId = {$plugin.tx_mmforum.mmforumnews_newsCommentCategory}
+	topicAuthorId = {$plugin.tx_mmforum.mmforumnews_newsTopicAuthor}
+
+
+		#
+		# This section contains some templates that will be used in the tt_news
+		# plugin.
+		#
+
+	templates {
+
+
+			#
+			# Lists the latest comments made for a tt_news record.
+			#
+
+		listLatestComments = COA
+		listLatestComments {
+			10 = CONTENT
+			10 {
+				select {
+					where = tx_mmforum_posts.deleted=0
+					andWhere.field = tx_mmforumnews_topic
+					andWhere.wrap = topic_id=|
+					andWhere.append = TEXT
+					andWhere.append {
+						field = tx_mmforumnews_topic
+						noTrimWrap = | AND tx_mmforum_posts.uid != (SELECT topic_first_post_id FROM tx_mmforum_topics WHERE uid=|) |
+					}
+					pidInList < plugin.tx_mmforum.storagePID
+					selectFields = t.post_text, tx_mmforum_posts.post_time, tx_mmforum_posts.uid as post_id, u.{$plugin.tx_mmforum.userNameField} as user_name, u.uid as user_uid
+					leftjoin = fe_users u ON tx_mmforum_posts.poster_id = u.uid LEFT JOIN tx_mmforum_posts_text t ON t.post_id = tx_mmforum_posts.uid
+					orderBy = post_time DESC
+					max = {$plugin.tx_mmforum.mmforumnews_previewAmount}
+				}
+				table = tx_mmforum_posts
+
+				renderObj = COA
+				renderObj {
+					10 = TEXT
+					10 {
+						field = post_time
+						strftime = %c
+						noTrimWrap = ||: |
+					}
+
+					20 = TEXT
+					20 {
+						field = post_text
+						crop = {$plugin.tx_mmforum.mmforumnews_previewLength}|...
+						typolink {
+							parameter = {$plugin.tx_mmforum.boardPID}
+							additionalParams.field = post_id
+							additionalParams.wrap = &tx_mmforum_pi1[action]=list_post&tx_mmforum_pi1[pid]=|
+						}
+					}
+
+					30 = TEXT
+					30 {
+						data = LLL:EXT:mm_forum_news/res/lang/locallang.xml:pi.by
+						noTrimWrap = | | |
+					}
+
+					40 = TEXT
+					40 {
+						field = user_name
+						typolink {
+							parameter = {$plugin.tx_mmforum.boardPID}
+							additionalParams.field = user_uid
+							additionalParams.wrap = &tx_mmforum_pi1[action]=forum_view_profil&tx_mmforum_pi1[user_id]=|
+						}
+					}
+					stdWrap.wrap = <dd> | </dd>
+				}
+			}
+
+			20 = TEXT
+			20 {
+				data = LLL:EXT:mm_forum_news/res/lang/locallang.xml:pi.newComment
+				typolink {
+					parameter = {$plugin.tx_mmforum.boardPID}
+					additionalParams.field = tx_mmforumnews_topic
+					additionalParams.wrap = &tx_mmforum_pi1[action]=new_post&tx_mmforum_pi1[tid]=|
+				}
+				wrap = <dd> | </dd>
+			}
+		}
+
+		commentAmount = CONTENT
+		commentAmount {
+			select {
+				where = deleted=0
+				andWhere.field = tx_mmforumnews_topic
+				andWhere.wrap = topic_id=|
+				pidInList < plugin.tx_mmforum.storagePID
+				selectFields = count(*)-1 as commentCount, topic_id
+				groupBy = topic_id
+			}
+			table = tx_mmforum_posts
+
+			renderObj = COA
+			renderObj {
+				1 = TEXT
+				1.field = commentCount
+				1.wrap = |&nbsp;
+
+				2 = TEXT
+				2.if.value.field = commentCount
+				2.if.equals = 1
+				2.data = LLL:EXT:mm_forum_news/res/lang/locallang.xml:pi.comment
+
+				3 = TEXT
+				3.if.value.field = commentCount
+				3.if.equals = 1
+				3.if.negate = 1
+				3.data = LLL:EXT:mm_forum_news/res/lang/locallang.xml:pi.comments
+
+				stdWrap.typolink {
+					parameter = {$plugin.tx_mmforum.boardPID}
+					additionalParams.field = topic_id
+					additionalParams.wrap = &tx_mmforum_pi1[action]=list_post&tx_mmforum_pi1[tid]=|
+				}
+			}
+		}
+	}
+}
+
+
+	#
+	# Hey! The entire comment presentation in the tt_news plugin is done via
+	# TypoScript. Isn't that great? Nobody understands it? So what!
+	# Btw, does anyone actually read these comments? I sincerely hope not... :P
+	#
+
+plugin.tt_news.displayList.subheader_stdWrap {
+	append.append = COA
+	append.append {
+		10 < plugin.tx_mmforumnews.templates.commentAmount
+		stdWrap.wrap = [ | ]
+	}
+}
+
+plugin.tt_news.displaySingle.content_stdWrap {
+	append = COA
+	append {
+		10 = COA
+		10 {
+			10 = TEXT
+			10.data = LLL:EXT:mm_forum_news/res/lang/locallang.xml:pi.comments
+
+			20 < plugin.tx_mmforumnews.templates.commentAmount
+			20.renderObj >
+			20.renderObj = TEXT
+			20.renderObj.field = commentCount
+			20.renderObj.noTrimWrap = | (|)|
+
+			stdWrap.wrap = <dt> | : </dt>
+		}
+		20 < plugin.tx_mmforumnews.templates.listLatestComments
+		stdWrap.wrap = <div class="news-single-additional-info"> <dl class="news-single-related"> | </dl> </div>
+	}
+}

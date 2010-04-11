@@ -1,0 +1,6 @@
+plugin.tx_mmforum {
+	mmforumnews_previewAmount = 5
+	mmforumnews_previewLength = 30
+}
+
+<INCLUDE_TYPOSCRIPT: source="FILE: typo3conf/tx_mmforum_config.ts">

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<T3locallang>
+    <meta type="array">
+        <description></description>
+        <type></type>
+        <csh_table></csh_table>
+        <labelContext type="array">
+        </labelContext>
+    </meta>
+    <data type="array">
+        <!-- ENGLISH LANGUAGE DATA -->
+        <languageKey index="default" type="array">
+            <label index="mod.category_title_short">News</label>
+            <label index="mod.category_title">News comments</label>
+
+			<label index="mod.newsCommentCategory.title">News comment forum</label>
+			<label index="mod.newsCommentCategory.desc">The forum that is to be used for tt_news comments.</label>
+			<label index="mod.newsTopicAuthor.title">Topic author</label>
+			<label index="mod.newsTopicAuthor.desc">This user will be used as author for new comment topics.</label>
+			<label index="mod.previewLength.title">Preview length</label>
+			<label index="mod.previewLength.desc">Amount of characters that is to be displayed as post preview in news single view.</label>
+			<label index="mod.previewAmount.title">Preview amount</label>
+			<label index="mod.previewAmount.desc">The number of latest comments that will be displayed below the news single view.</label>
+
+			<label index="db.ttnews_topic">Comment topic</label>
+
+			<label index="pi.comment">Comment</label>
+			<label index="pi.comments">Comments</label>
+			<label index="pi.by">by</label>
+			<label index="pi.newComment">Write a new comment</label>
+        </languageKey>
+		<!-- GERMAN LANGUAGE DATA -->
+        <languageKey index="de" type="array">
+            <label index="mod.category_title_short">News</label>
+            <label index="mod.category_title">News-Kommentare</label>
+
+			<label index="mod.newsCommentCategory.title">Forum für News-Kommentare</label>
+			<label index="mod.newsCommentCategory.desc">Dieses Forum wird für tt_news-Kommentare verwendet.</label>
+			<label index="mod.newsTopicAuthor.title">Themen-Verfasser</label>
+			<label index="mod.newsTopicAuthor.desc">Dieser Benutzer wird als Verfasser für neue Kommentar-Themen verwendet.</label>
+			<label index="mod.previewLength.title">Vorschaulänge</label>
+			<label index="mod.previewLength.desc">Die Anzahl der Zeichen, die unter der News-Einzelansicht als Vorschau auf einen Beitrag angezeigt wird.</label>
+			<label index="mod.previewAmount.title">Vorschauanzahl</label>
+			<label index="mod.previewAmount.desc">Die Anzahl der neuesten Kommentare, die unter der News-Einzelansicht angezeigt werden.</label>
+
+			<label index="db.ttnews_topic">Kommentar-Thema</label>
+			<label index="pi.comment">Kommentar</label>
+			<label index="pi.comments">Kommentare</label>
+			<label index="pi.by">von</label>
+			<label index="pi.newComment">Einen neuen Kommentar schreiben</label>
+        </languageKey>
+    </data>
+</T3locallang>
