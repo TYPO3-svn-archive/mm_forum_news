@@ -1,3 +1,7 @@
+10-04-11 Hauke Hain <hhpreuss@googlemail.com>
+
+	* Compatibility with mm_forum_comments (using mm_forum_comments functions)
+
 09-12-19 Martin Helmich  <m.helmich@mittwald.de>
 
 	* Initial release

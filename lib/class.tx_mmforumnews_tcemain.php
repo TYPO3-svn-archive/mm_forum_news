@@ -23,6 +23,8 @@
  *  This copyright notice MUST APPEAR in all copies of the script!     *
  *                                                                     */
 
+ require_once(t3lib_extMgm::extPath('mm_forum_comments').'lib/class.tx_mmforumcomments_div.php');
+ require_once(t3lib_extMgm::extPath('mm_forum_comments').'lib/class.tx_mmforumcomments_createcomments.php');
 
 
 	/**
@@ -48,9 +50,10 @@ class tx_mmforumnews_TCEMain {
 		 *
 		 * Hooks into the TCEmain data-mapping process.
 		 * This methods hooks into the "process_datamap" method of the TCEmain
-		 * class. If a new tt_news record is created, this function creates a
-		 * mm_forum topic and stores it's UID in the new tt_news record.
-		 * If a news record is updated, the related topic is updated.
+		 * class. If a new tt_news record is updated, this function creates a
+		 * mm_forum topic and stores it's UID in the new tt_news record
+		 * OR
+		 * the related topic is updated.
 		 *
 		 * @param  string        $status      The status of the edited record.
 		 *                                    This may either be "new" or
@@ -65,16 +68,69 @@ class tx_mmforumnews_TCEMain {
 		 */
 
 	public function processDatamap_postProcessFieldArray($status, $table, $id, &$fieldArray, $parent) {
-		if($table === 'tt_news') {
-			$this->loadTSSetupForPage($fieldArray['pid']);
+		if($table === 'tt_news' && $status === 'update' && intval($id) > 0) {
+		  $this->relationTable = 'tx_mmforumcomments_links';
 
-			if($status === 'new' && !$fieldArray['tx_mmforumnews_topic'])
-				$this->createTopicForRecord($fieldArray);
-			elseif($status === 'update') {
-				$completeRecord = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($GLOBALS['TYPO3_DB']->exec_SELECTquery('*',$table,'uid='.$id));
-				if($completeRecord['tx_mmforumnews_topic'])
-					$this->updateTopicForRecord($fieldArray, $completeRecord);
-			}
+      $completeNewsRecord = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($GLOBALS['TYPO3_DB']->exec_SELECTquery('*',$table,'uid='.$id));
+
+      if ($fieldArray['hidden'] === null) {
+        $fieldArray['hidden'] = $completeNewsRecord['hidden'];
+      }
+
+      if ($fieldArray['tx_mmforumnews_createtopic'] === null) {
+        $fieldArray['tx_mmforumnews_createtopic'] = $completeNewsRecord['tx_mmforumnews_createtopic'];
+      }
+
+			if (!$fieldArray['hidden'] && $fieldArray['tx_mmforumnews_createtopic']) {
+        $setup = tx_mmforumcomments_div::loadTSSetupForPage($completeNewsRecord['pid']);
+    		$parameters = array('tx_ttnews->tt_news', $id, 'tx_ttnews');
+
+    		$topicID = tx_mmforumcomments_div::getTopicID($completeNewsRecord['pid'], $parameters, $this->relationTable);
+
+ 			  if ($topicID === 0) {
+          $this->createTopicForRecord($parameters, $setup['plugin.']['tx_mmforumcomments_pi1.'], $completeNewsRecord['pid'], $setup['plugin.']['tx_mmforum.']['storagePID']);
+        } else {
+  				//TODO: use $topicID
+          /*
+          $completeRecord = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($GLOBALS['TYPO3_DB']->exec_SELECTquery('*',$table,'uid='.$id));
+  				if($completeRecord['tx_mmforumnews_topic'])
+  					$this->updateTopicForRecord($fieldArray, $completeRecord);
+   				*/
+  			}
+      }
+		}
+	}
+
+  /**
+		 *
+		 * Hooks into the TCEmain data-mapping process.
+		 * This methods hooks into the "process_datamap" method of the TCEmain
+		 * class. If a new tt_news record is created, this function creates a
+		 * mm_forum topic and stores it's UID in the new tt_news record.
+		 *
+		 * @param  string        $status      The status of the edited record.
+		 *                                    This may either be "new" or
+		 *                                    "update".
+		 * @param  string        $table       The record's table
+		 * @param  string        $id          The record's UID
+		 * @param  array         &$fieldArray The entire record that is being
+		 *                                    edited.
+		 * @param  t3lib_TCEmain $pObj        The TCEmain instance that calls
+		 *                                    this hook.
+		 * @return void
+		 */
+
+	function processDatamap_afterDatabaseOperations($status, $table, $id, &$fieldArray, &$pObj) {
+		if($table === 'tt_news' && $fieldArray['tx_mmforumnews_createtopic'] && $status === 'new') {
+		  $this->relationTable = 'tx_mmforumcomments_links';
+		  $id = intval($pObj->substNEWwithIDs[$id]);
+
+      if (intval($id) > 0 && !$fieldArray['hidden']) {
+        $setup = tx_mmforumcomments_div::loadTSSetupForPage($fieldArray['pid']);
+      	$parameters = array('tx_ttnews->tt_news', $id, 'tx_ttnews');
+
+      	$this->createTopicForRecord($parameters, $setup['plugin.']['tx_mmforumcomments_pi1.'], $fieldArray['pid'] ,$setup['plugin.']['tx_mmforum.']['storagePID']);
+      }
 		}
 	}
 
@@ -87,21 +143,30 @@ class tx_mmforumnews_TCEMain {
 		 * commenting a tt_news record. This method uses the mm_forum postfactory
 		 * interface in order to create the new topic.
 		 *
-		 * @param  array &$fieldArray The new tt_news record.
+		 * @param  array    &$parameters The URL parameters.
+		 * @param  array    &$conf The mm_forum_comments TypoScript setup.
+		 * @param  integer  $pid page id for the relation table.
+		 * @param  integer  $storagePID storage page id of mm_forum.
 		 * @return void
 		 *
 		 */
 
-	protected function createTopicForRecord(&$fieldArray) {
-		if(   isset($this->setup['plugin.']['tx_mmforumnews.']['forumId'])
-		   && isset($this->setup['plugin.']['tx_mmforumnews.']['topicAuthorId']))
-			$fieldArray['tx_mmforumnews_topic'] = $this->getPostFactory()->create_topic(
-				$this->setup['plugin.']['tx_mmforumnews.']['forumId'],
-				$this->setup['plugin.']['tx_mmforumnews.']['topicAuthorId'],
-				$fieldArray['title'], $fieldArray['bodytext'], $fieldArray['crdate'],
-				dechex(ip2long(t3lib_div::getIndpEnv('REMOTE_ADDR'))), array(),
-				0, false, false, false
-			);
+	protected function createTopicForRecord(&$parameters, &$conf, $pid, $storagePID) {
+		$data = tx_mmforumcomments_div::getTypoScriptData($parameters[2], intval($parameters[1])==0 ? $pid : intval($parameters[1]), $conf);
+
+  	$commcat = tx_mmforumcomments_div::getCommentCategoryUID($parameters[2], $conf);
+  	$commaut = tx_mmforumcomments_div::getTopicAuthorUID($parameters[2], $conf);
+  	$subject = tx_mmforumcomments_div::getTSparsedString('subject', $parameters[2], $conf, $data);
+  	$posttext = tx_mmforumcomments_div::getTSparsedString('posttext', $parameters[2], $conf, $data);
+  	$link = tx_mmforumcomments_div::getTSparsedString('linktopage', $parameters[2], $conf, $data);
+  	$date = tx_mmforumcomments_div::getDate($parameters[2], $conf, $data);
+
+    tx_mmforumcomments_createcomments::createTopic($pid, $parameters,
+            $commcat, $commaut,
+            tx_mmforumcomments_div::prepareString($subject),
+            tx_mmforumcomments_div::prepareString($posttext.$link),
+            $date, $this->relationTable,
+            $storagePID);
 	}
 
 
