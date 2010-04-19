@@ -34,20 +34,6 @@ mod.web_txmmforumM1 {
 							label       = LLL:EXT:mm_forum_news/res/lang/locallang.xml:mod.newsTopicAuthor.title
 							description = LLL:EXT:mm_forum_news/res/lang/locallang.xml:mod.newsTopicAuthor.desc
 						}
-
-						mmforumnews_previewLength = MMFORUM_CONF_ITEM
-						mmforumnews_previewLength {
-							type = int
-							label       = LLL:EXT:mm_forum_news/res/lang/locallang.xml:mod.previewLength.title
-							description = LLL:EXT:mm_forum_news/res/lang/locallang.xml:mod.previewLength.desc
-						}
-
-						mmforumnews_previewAmount = MMFORUM_CONF_ITEM
-						mmforumnews_previewAmount {
-							type = int
-							label       = LLL:EXT:mm_forum_news/res/lang/locallang.xml:mod.previewAmount.title
-							description = LLL:EXT:mm_forum_news/res/lang/locallang.xml:mod.previewAmount.desc
-						}
 					}
 				}
 			}

@@ -14,10 +14,10 @@ $EM_CONF[$_EXTKEY] = array(
 	'title' => 'News comments with mm_forum',
 	'description' => 'Provides a commenting function for tt_news entries using the mm_forum extension.',
 	'category' => 'fe',
-	'author' => 'Martin Helmich',
-	'author_email' => 'm.helmich@mittwald.de',
+	'author' => 'Martin Helmich, Hauke Hain',
+	'author_email' => 'm.helmich@mittwald.de, hhpreuss@googlemail.com',
 	'shy' => '',
-	'dependencies' => 'tt_news,mm_forum',
+	'dependencies' => 'tt_news,mm_forum,mm_forum_comments',
 	'conflicts' => '',
 	'priority' => '',
 	'module' => '',
@@ -34,6 +34,7 @@ $EM_CONF[$_EXTKEY] = array(
 		'depends' => array(
 			'tt_news' => '3.0.1-0.0.0',
 			'mm_forum' => '1.9.0-0.0.0',
+			'mm_forum_comments' => '0.0.0-0.0.0',
 		),
 		'conflicts' => array(
 		),
