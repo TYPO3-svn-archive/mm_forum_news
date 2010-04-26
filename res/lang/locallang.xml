@@ -20,7 +20,7 @@
   			<label index="mod.previewAmount.title">Preview amount</label>
   			<label index="mod.previewAmount.desc">The number of latest comments that will be displayed below the news single view.</label>
   
-  			<label index="db.ttnews_createtopic">Allow mm_forum comments?</label>
+  			<label index="db.ttnews_createtopic">Create mm_forum comment topic?</label>
       </languageKey>
   		<!-- GERMAN LANGUAGE DATA -->
         <languageKey index="de" type="array">
@@ -33,6 +33,8 @@
   			<label index="mod.newsTopicAuthor.desc">Dieser Benutzer wird als Verfasser für neue Kommentar-Themen verwendet.</label>
   			<label index="mod.previewAmount.title">Vorschauanzahl</label>
   			<label index="mod.previewAmount.desc">Die Anzahl der neuesten Kommentare, die unter der News-Einzelansicht angezeigt werden.</label>
+  
+  			<label index="db.ttnews_createtopic">mm_forum Kommentarthema anlegen?</label>
       </languageKey>
     </data>
 </T3locallang>
