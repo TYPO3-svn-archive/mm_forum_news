@@ -1,3 +1,7 @@
+10-05-24 Hauke Hain <hhpreuss@googlemail.com>
+
+	* Read Single News PID from tt_news constant
+
 10-04-11 Hauke Hain <hhpreuss@googlemail.com>
 
 	* Compatibility with mm_forum_comments (using mm_forum_comments functions)

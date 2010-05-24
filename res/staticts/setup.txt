@@ -34,7 +34,7 @@ plugin.tx_mmforumcomments_pi1 {
       	20 {
           typolink {
             # id of the Single News Page
-            parameter = 9
+            parameter = {$plugin.tt_news.singlePid}
             additionalParams.cObject = COA
             additionalParams.cObject {
               5 = TEXT
