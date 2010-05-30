@@ -24,7 +24,6 @@
  *                                                                     */
 
  require_once(t3lib_extMgm::extPath('mm_forum_comments').'lib/class.tx_mmforumcomments_div.php');
- require_once(t3lib_extMgm::extPath('mm_forum_comments').'lib/class.tx_mmforumcomments_createcomments.php');
 
 
 	/**
@@ -69,8 +68,6 @@ class tx_mmforumnews_TCEMain {
 
 	public function processDatamap_postProcessFieldArray($status, $table, $id, &$fieldArray, $parent) {
 		if($table === 'tt_news' && $status === 'update' && intval($id) > 0) {
-		  $this->relationTable = 'tx_mmforumcomments_links';
-
       $completeNewsRecord = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($GLOBALS['TYPO3_DB']->exec_SELECTquery('*',$table,'uid='.$id));
 
       if ($fieldArray['hidden'] === null) {
@@ -85,10 +82,10 @@ class tx_mmforumnews_TCEMain {
         $setup = tx_mmforumcomments_div::loadTSSetupForPage($completeNewsRecord['pid']);
     		$parameters = array('tx_ttnews->tt_news', $id, 'tx_ttnews');
 
-    		$topicID = tx_mmforumcomments_div::getTopicID($completeNewsRecord['pid'], $parameters, $this->relationTable);
+    		$topicID = tx_mmforumcomments_div::getTopicID($completeNewsRecord['pid'], $parameters);
 
  			  if ($topicID === 0) {
-          $this->createTopicForRecord($parameters, $setup['plugin.']['tx_mmforumcomments_pi1.'], $completeNewsRecord['pid'], $setup['plugin.']['tx_mmforum.']['storagePID']);
+          tx_mmforumcomments_div::createTopicForRecord($parameters, $setup['plugin.']['tx_mmforumcomments_pi1.'], $completeNewsRecord['pid'], $setup['plugin.']['tx_mmforum.']['storagePID'], $parent, false);
         } else {
   				//TODO: use $topicID
           /*
@@ -122,54 +119,16 @@ class tx_mmforumnews_TCEMain {
 
 	function processDatamap_afterDatabaseOperations($status, $table, $id, &$fieldArray, &$pObj) {
 		if($table === 'tt_news' && $fieldArray['tx_mmforumnews_createtopic'] && $status === 'new') {
-		  $this->relationTable = 'tx_mmforumcomments_links';
 		  $id = intval($pObj->substNEWwithIDs[$id]);
 
       if (intval($id) > 0 && !$fieldArray['hidden']) {
         $setup = tx_mmforumcomments_div::loadTSSetupForPage($fieldArray['pid']);
       	$parameters = array('tx_ttnews->tt_news', $id, 'tx_ttnews');
 
-      	$this->createTopicForRecord($parameters, $setup['plugin.']['tx_mmforumcomments_pi1.'], $fieldArray['pid'] ,$setup['plugin.']['tx_mmforum.']['storagePID']);
+      	tx_mmforumcomments_div::createTopicForRecord($parameters, $setup['plugin.']['tx_mmforumcomments_pi1.'], $fieldArray['pid'] ,$setup['plugin.']['tx_mmforum.']['storagePID'], $parent, false);
       }
 		}
 	}
-
-
-
-		/**
-		 *
-		 * Creates a new commenting topic for a news record.
-		 * This methods creates a new mm_forum topic that will be used for
-		 * commenting a tt_news record. This method uses the mm_forum postfactory
-		 * interface in order to create the new topic.
-		 *
-		 * @param  array    &$parameters The URL parameters.
-		 * @param  array    &$conf The mm_forum_comments TypoScript setup.
-		 * @param  integer  $pid page id for the relation table.
-		 * @param  integer  $storagePID storage page id of mm_forum.
-		 * @return void
-		 *
-		 */
-
-	protected function createTopicForRecord(&$parameters, &$conf, $pid, $storagePID) {
-		$data = tx_mmforumcomments_div::getTypoScriptData($parameters[2], intval($parameters[1])==0 ? $pid : intval($parameters[1]), $conf);
-
-  	$commcat = tx_mmforumcomments_div::getCommentCategoryUID($parameters[2], $conf);
-  	$commaut = tx_mmforumcomments_div::getTopicAuthorUID($parameters[2], $conf);
-  	$subject = tx_mmforumcomments_div::getTSparsedString('subject', $parameters[2], $conf, $data);
-  	$posttext = tx_mmforumcomments_div::getTSparsedString('posttext', $parameters[2], $conf, $data);
-  	$link = tx_mmforumcomments_div::getTSparsedString('linktopage', $parameters[2], $conf, $data);
-  	$date = tx_mmforumcomments_div::getDate($parameters[2], $conf, $data);
-
-    tx_mmforumcomments_createcomments::createTopic($pid, $parameters,
-            $commcat, $commaut,
-            tx_mmforumcomments_div::prepareString($subject),
-            tx_mmforumcomments_div::prepareString($posttext.$link),
-            $date, $this->relationTable,
-            $storagePID);
-	}
-
-
 
 		/**
 		 *
